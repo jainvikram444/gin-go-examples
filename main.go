@@ -2,13 +2,23 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	"gin-example/gin-examples/form"
+	_template "gin-example/gin-examples/templates"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	// Disable log's color
+	//gin.DisableConsoleColor()
+
+	// Force log's color
+	gin.ForceConsoleColor()
+
+	// Creates a gin router with default middleware:
+	// logger and recovery (crash-free) middleware
 	r := gin.Default()
 
 	// ping for the health check
@@ -41,5 +51,34 @@ func main() {
 	//browse html file <Relative path>/public/formColors.html
 	r.POST("/formColors", form.FormHandler)
 
-	r.Run()
+	// load html file
+	r.LoadHTMLGlob("templates/**/*.tmpl")
+
+	// Load home tempalte as HTML
+	r.GET("/template/home", _template.GetHomeTemplate)
+
+	// Load users tempalte as HTML
+	r.GET("/template/users", _template.GetUsersTemplate)
+
+	// Quering Data or Post Data
+	// http://localhost:8080/formQueryPostData?name=appleboy&address=xyz
+	r.GET("/formQueryPostData", form.FormQueryPostData)
+
+	//Middleware: LogWithFormattor will write the logs to gi.DefaultWrtiter
+	// By Default gin.DefaultWriter = os.Output
+
+	// Run throgth the below Run() or http configuration
+	//r.Run()
+
+	// Or
+
+	// Custom HTTP configuration
+	s := &http.Server{
+		Addr:           ":8080",
+		Handler:        r,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+	s.ListenAndServe()
 }
